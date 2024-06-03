@@ -1,25 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, createContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
+import { ChakraProvider } from '@chakra-ui/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ActiveOrders from './components/ActiveOrders';
+import CompletedOrders from './components/CompletedOrders';
+import LoginPage from './components/LoginPage';
+import ThemeToggle from './components/ThemeToggle';
+import Navigation from './components/Navigation';
 
-function App() {
+const AuthContext = createContext();
+
+const queryClient = new QueryClient();
+
+const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider>
+        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
+          <Router>
+            <div>
+              <ThemeToggle />
+              <Routes>
+                <Route path="/" element={<LoginPage />} />
+                <Route
+                  path="/orders/*"
+                  element={isAuthenticated ? <Orders /> : <Navigate to="/" />}
+                />
+              </Routes>
+            </div>
+          </Router>
+        </AuthContext.Provider>
+      </ChakraProvider>
+    </QueryClientProvider>
+  );
+};
+
+const Orders = () => {
+  return (
+    <div>
+      <Navigation />
+      <Routes>
+        <Route path="active" element={<ActiveOrders />} />
+        <Route path="completed" element={<CompletedOrders />} />
+      </Routes>
     </div>
   );
-}
+};
 
 export default App;
+export { AuthContext };
